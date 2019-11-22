@@ -1,0 +1,61 @@
+---
+# tasks file for ansible_chef_install
+- name: install and configure chef dk
+  block:
+    - name: install chef dk package
+      yum:
+        name: https://packages.chef.io/files/stable/chefdk/{{ chef_dk_version }}/el/{{ ansible_distribution_major_version }}/chefdk-{{ chef_dk_version }}-1.el{{ ansible_distribution_major_version }}.{{ ansible_architecture }}.rpm
+        state: present
+
+    - name: verify chef
+      shell: chef verify
+      register: chef_verify
+    - debug:
+        msg: "{{ chef_verify }}"
+
+    - name: add env PATH
+      lineinfile:
+        PATH: ~/.bash_profile
+        line: export PATH="/opt/chefdk/embedded/bin:$PATH"
+
+    - name: source env variable
+      shell: source ~/.bash_profile
+  tags:
+    - chef_dk
+
+- name: install and configure chef server
+  block:
+    - name: install chef server
+      yum:
+        name: https://packages.chef.io/files/stable/chef-server/{{ chef_server_version }}/el/{{ ansible_distribution_major_version }}/chef-server-core-{{ chef_server_version }}-1.el{{ ansible_distribution_major_version }}.{{ ansible_architecture }}.rpm
+        state: present
+
+    - name: configure chef dk
+      shell: chef-server-ctl reconfigure
+
+    - name: chef dk status
+      shell: chef-server-ctl status
+      register: chef_status
+    - debug:
+        msg: "{{ chef_status }}"
+
+    - name: print admin user information
+      debug:
+        msg: "User information is: {{ item.USER_NAME }} {{ item.FIRST_NAME }} {{ item.LAST_NAME }} {{ item.EMAIL }} {{ item.PASSWORD }} {{ item.PATH }}/{{ item.FILE_NAME }}"
+      loop: "{{ admin_user_information }}"
+
+    - name: create admin user
+      shell: chef-server-ctl user-create {{ item.USER_NAME }} {{ item.FIRST_NAME }} {{ item.LAST_NAME }} {{ item.EMAIL }} "{{ item.PASSWORD }}" -f {{ item.PATH }}/{{ item.FILE_NAME }}
+      loop: "{{ admin_user_information }}"
+      register: admin_user_creation
+    - debug:
+        msg: "{{ admin_user_creation.stdout }}"
+
+    - name: create organization
+      shell: chef-server-ctl org-create {{ item.SHORT_NAME }} "{{ item.FULL_ORGANIZATION_NAME }}" --association_user {{ item.USER_NAME }} --filename {{ item.SHORT_NAME }}-validator.pem
+      loop: "{{ organization_information }}"
+      register: organization_creation
+    - debug:
+        msg: "{{ organization_creation.stdout }}"
+  tags:
+    - chef_server

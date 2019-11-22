@@ -1,0 +1,15 @@
+---
+# defaults file for ansible_chef_install
+chef_dk_version: 4.5.0
+chef_server_version: 13.0.17
+admin_user_information:
+  - USER_NAME: admin
+    FIRST_NAME: Marco
+    LAST_NAME: Barboza
+    EMAIL: admin@blcsystems.com
+    PASSWORD: PASSWORD
+    FILE_NAME: admin.pem
+    PATH: /etc/chef
+organization_information:
+  - SHORT_NAME: blcsystems
+    FULL_ORGANIZATION_NAME: BLCSystems LLC
