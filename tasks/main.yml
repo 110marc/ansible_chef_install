@@ -7,11 +7,32 @@
         name: https://packages.chef.io/files/stable/chefdk/{{ chef_dk_version }}/el/{{ ansible_distribution_major_version }}/chefdk-{{ chef_dk_version }}-1.el{{ ansible_distribution_major_version }}.{{ ansible_architecture }}.rpm
         state: present
 
+    - name: install ruby and dev
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ruby
+        - ruby-devel
+        - make
+        - cmake
+        - gcc
+      ignore_errors: yes
+
+    - name: install ruby dependencies
+      gem:
+        executable: /opt/chefdk/embedded/bin/gem
+        install_dir: /root/.gem/ruby/bin
+        user_install: no
+        name: rugged
+        version: 0.26.6
+        state: present
+
     - name: verify chef
-      shell: chef verify
+      raw: (printf "yes\n") | chef verify
       register: chef_verify
     - debug:
-        msg: "{{ chef_verify }}"
+        msg: "{{ chef_verify.stdout }}"
 
     - name: add env PATH
       lineinfile:
