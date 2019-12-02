@@ -1,5 +1,7 @@
 ---
 # defaults file for ansible_chef_install
+git_username: 110marc
+git_email: admin@blcsystems.com
 chef_dk_version: 4.5.0
 chef_server_version: 13.0.17
 admin_user_information:
