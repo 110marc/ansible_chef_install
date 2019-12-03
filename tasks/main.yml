@@ -87,7 +87,7 @@
         remote_src: yes
 
     - name: configure ruby
-      shell: ./configure --prefix=/usr --enable-shared --docdir=/usr/share/doc/ruby-2.6.5 
+      shell: ./configure --prefix=/usr/local/ruby
       args:
         chdir: /tmp/ruby-2.6.5
 
