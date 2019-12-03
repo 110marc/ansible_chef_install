@@ -28,7 +28,6 @@
         - cmake
         - gcc
         - git
-      ignore_errors: yes
 
     - name: install ruby dependencies
       gem:
@@ -40,7 +39,7 @@
         state: present
 
     - name: verify chef
-      raw: (printf "yes\n") | chef verify
+      shell: chef verify --chef-license=accept
       register: chef_verify
     - debug:
         msg: "{{ chef_verify.stdout }}"
@@ -57,13 +56,48 @@
 
 - name: install and configure chef server
   block:
+    - name: install dependencies
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - postgresql
+        - iproute
+        - ruby
+        - ruby-devel
+        - make
+        - cmake
+        - gcc
+        - git
+
+    - name: configure ruby repo  
+      apt_repository:
+        repo: 'ppa:brightbox/ruby-ng'
+
+    - name: install ruby dependencies
+      gem:
+        executable: /usr/bin/gem
+        install_dir: /root/.gem/ruby/bin
+        user_install: no
+        name: "{{ item.name }}"
+        version: "{{ item.version }}"
+        state: present
+      loop:
+        - { name: ohai, version: 8.17.1 }
+
     - name: install chef server
       yum:
         name: https://packages.chef.io/files/stable/chef-server/{{ chef_server_version }}/el/{{ ansible_distribution_major_version }}/chef-server-core-{{ chef_server_version }}-1.el{{ ansible_distribution_major_version }}.{{ ansible_architecture }}.rpm
         state: present
 
-    - name: configure chef dk
-      shell: chef-server-ctl reconfigure
+    - name: configure chef server
+      block:
+        - name: configure chef dk
+          shell: chef-server-ctl reconfigure --chef-license=accept
+
+      rescue:
+        - name: cleanse chef
+          shell: chef-server-ctl cleanse
 
     - name: chef dk status
       shell: chef-server-ctl status
