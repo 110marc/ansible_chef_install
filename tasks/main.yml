@@ -56,6 +56,14 @@
 
 - name: install and configure chef server
   block:
+    - name: remove ruby 2.0
+      yum:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - ruby
+        - ruby-devel
+
     - name: install dependencies
       yum:
         name: "{{ item }}"
@@ -63,16 +71,51 @@
       loop:
         - postgresql
         - iproute
-        - ruby
-        - ruby-devel
         - make
         - cmake
         - gcc
         - git
+        - zlib
+        - zlib-devel
+        - openssl
+        - openssl-devel
 
-    - name: configure ruby repo  
-      apt_repository:
-        repo: 'ppa:brightbox/ruby-ng'
+    - name: download ruby package
+      unarchive:
+        src: https://cache.ruby-lang.org/pub/ruby/ruby-2.6.5.tar.gz
+        dest: /tmp/
+        remote_src: yes
+
+    - name: configure ruby
+      shell: ./configure --prefix=/usr --enable-shared --docdir=/usr/share/doc/ruby-2.6.5 
+      args:
+        chdir: /tmp/ruby-2.6.5
+
+    - name: build and install ruby
+      make:
+        chdir: /tmp/ruby-2.6.5
+        target: "{{ item }}"
+      loop:
+        - all
+        - update-gems
+        - extract-gems
+        - install
+
+    - name: sym-link ruby
+      file:
+        src: /usr/local/bin/{{ item }}
+        dest: /usr/bin/{{ item }}
+        state: link
+      loop:
+        - bundle
+        - bundler
+        - erb
+        - gem
+        - irb
+        - rake
+        - rdoc
+        - ri
+        - ruby
 
     - name: install ruby dependencies
       gem:
