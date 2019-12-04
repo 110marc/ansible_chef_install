@@ -71,6 +71,7 @@
       loop:
         - postgresql
         - iproute
+        - autoconf
         - make
         - cmake
         - gcc
@@ -87,7 +88,7 @@
         remote_src: yes
 
     - name: configure ruby
-      shell: ./configure --prefix=/usr/local/ruby
+      shell: ./configure --prefix=/usr
       args:
         chdir: /tmp/ruby-2.6.5
 
@@ -97,36 +98,17 @@
         target: "{{ item }}"
       loop:
         - all
-        - update-gems
-        - extract-gems
         - install
-
-    - name: sym-link ruby
-      file:
-        src: /usr/local/bin/{{ item }}
-        dest: /usr/bin/{{ item }}
-        state: link
-      loop:
-        - bundle
-        - bundler
-        - erb
-        - gem
-        - irb
-        - rake
-        - rdoc
-        - ri
-        - ruby
 
     - name: install ruby dependencies
       gem:
         executable: /usr/bin/gem
-        install_dir: /root/.gem/ruby/bin
         user_install: no
-        name: "{{ item.name }}"
-        version: "{{ item.version }}"
-        state: present
+        name: "{{ item }}"
+        state: latest
       loop:
-        - { name: ohai, version: 8.17.1 }
+        - ohai
+        - supervisor
 
     - name: install chef server
       yum:
@@ -135,14 +117,14 @@
 
     - name: configure chef server
       block:
-        - name: configure chef dk
+        - name: configure chef server
           shell: chef-server-ctl reconfigure --chef-license=accept
 
       rescue:
-        - name: cleanse chef
+        - name: cleanse chef server
           shell: chef-server-ctl cleanse
 
-    - name: chef dk status
+    - name: chef server status
       shell: chef-server-ctl status
       register: chef_status
     - debug:
