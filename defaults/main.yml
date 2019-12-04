@@ -3,7 +3,7 @@
 git_username: 110marc
 git_email: admin@blcsystems.com
 chef_dk_version: 4.5.0
-chef_server_version: 13.0.17
+chef_server_version: 13.1.13
 admin_user_information:
   - USER_NAME: admin
     FIRST_NAME: Marco

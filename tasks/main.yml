@@ -56,13 +56,22 @@
 
 - name: install and configure chef server
   block:
-    - name: remove ruby 2.0
+    - name: remove ruby 2.x
       yum:
         name: "{{ item }}"
         state: absent
       loop:
         - ruby
         - ruby-devel
+
+    - name: install ruby 2.6
+      yum:
+        name: "{{ item }}"
+        state: latest
+      loop:
+       - centos-release-scl-rh
+       - centos-release-scl
+       - rh-ruby26
 
     - name: install dependencies
       yum:
@@ -81,28 +90,10 @@
         - openssl
         - openssl-devel
 
-    - name: download ruby package
-      unarchive:
-        src: https://cache.ruby-lang.org/pub/ruby/ruby-2.6.5.tar.gz
-        dest: /tmp/
-        remote_src: yes
-
-    - name: configure ruby
-      shell: ./configure --prefix=/usr
-      args:
-        chdir: /tmp/ruby-2.6.5
-
-    - name: build and install ruby
-      make:
-        chdir: /tmp/ruby-2.6.5
-        target: "{{ item }}"
-      loop:
-        - all
-        - install
-
     - name: install ruby dependencies
       gem:
-        executable: /usr/bin/gem
+        executable: /opt/chefdk/embedded/bin/gem
+        install_dir: /root/.gem/ruby/bin
         user_install: no
         name: "{{ item }}"
         state: latest
