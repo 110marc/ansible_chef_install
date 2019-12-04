@@ -108,7 +108,6 @@
         state: latest
       loop:
         - ohai
-        - supervisor
 
     - name: install chef server
       yum:
